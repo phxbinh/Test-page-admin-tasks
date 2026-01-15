@@ -1,0 +1,59 @@
+/* ===============================
+   Public Tasks List
+=============================== */
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* từng item */
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  background: #fff;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.task-item:hover {
+  background: #f9fafb;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+/* title */
+.task-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* pdf badge */
+.task-pdf {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+
+  background: #ef4444;
+  color: #fff;
+}
+
+.task-pdf:hover {
+  background: #dc2626;
+}
