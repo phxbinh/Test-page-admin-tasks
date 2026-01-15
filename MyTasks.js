@@ -1484,6 +1484,7 @@ function AdminUsers() {
 // ====================
 // Cập nhật Navbar để hiển thị link Admin nếu là admin
 // ====================
+/*
 let currentUserRole = 'user'; // Global var để track role
 
 supabase.auth.onAuthStateChange(async (event, session) => {
@@ -1500,7 +1501,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   // Re-render navbar khi role change
   //window.App.Router.renderNavbar();
 });
-
+*/
 // ====================
 // Home Page
 // ====================
@@ -1541,7 +1542,7 @@ window.App.Router.navbarDynamic({
     h(Link, { to: "/dashboard", style: { color: "white", margin: "0 1rem" }, children: "Dashboard" }),
     h(Link, { to: "/tasks", style: { color: "white", margin: "0 1rem" }, children: "Tasks" }),
     h(Link, { to: "/tasks/publictasks", style: { color: "white", margin: "0 1rem" }, children: "Public tasks" }),
-    currentUserRole === 'admin' && h(Link, { to: "/admin/users", style: { color: "white", margin: "0 1rem" }, children: "Admin Users" })
+    h(Link, { to: "/admin/users", style: { color: "white", margin: "0 1rem" }, children: "Admin Users" })
   )
 });
 
