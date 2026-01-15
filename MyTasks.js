@@ -1187,6 +1187,7 @@ function ProfileEdit() {
 // ====================
 // Component AdminUsers (Quản lý người dùng - chỉ admin)
 // ====================
+/*
 function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1323,6 +1324,162 @@ function AdminUsers() {
     ])
   );
 }
+*/
+
+
+function AdminUsers() {
+  const { h } = window.App.VDOM;
+  const { useState, useEffect } = window.App.Hooks;
+
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ==========================================
+  // Load users (giữ nguyên logic)
+  // ==========================================
+  async function loadUsers() {
+    try {
+      const res = await fetch('/api/users');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Fetch users failed');
+      }
+
+      setUsers(data);
+      setLoading(false);
+    } catch (err) {
+      setError('Lỗi tải danh sách: ' + err.message);
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // ==========================================
+  // Event handlers (tách từ DOM thuần)
+  // ==========================================
+  function handleChangeRole(user, newRole) {
+    if (newRole === user.role) return;
+
+    if (!confirm(`Đổi role của ${user.email} thành ${newRole}?`)) {
+      return;
+    }
+
+    fetch('/api/change-role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, newRole })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert('Đổi role thành công');
+          location.reload();
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không xác định'));
+        }
+      })
+      .catch(err => {
+        alert('Lỗi mạng: ' + err.message);
+      });
+  }
+
+  function handleDeleteUser(user) {
+    if (!confirm(`Xóa người dùng ${user.email}?`)) return;
+
+    fetch('/api/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert('Xóa thành công');
+          location.reload();
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không xác định'));
+        }
+      })
+      .catch(err => alert('Lỗi mạng: ' + err.message));
+  }
+
+  // ==========================================
+  // Render
+  // ==========================================
+  if (loading) {
+    return h('div', { id: 'loading' }, 'Đang tải danh sách người dùng...');
+  }
+
+  if (error) {
+    return h('div', { className: 'error' }, error);
+  }
+
+  return h('div', { className: 'admin-page' },
+    h('h2', null, 'Quản lý người dùng'),
+
+    h('table', { id: 'user-table', border: 1, cellPadding: 8 },
+      h('thead', null,
+        h('tr', null,
+          h('th', null, 'Email'),
+          h('th', null, 'User ID'),
+          h('th', null, 'Role'),
+          h('th', null, 'Hành động')
+        )
+      ),
+
+      h('tbody', { id: 'user-body' },
+        users.map(user =>
+          h('tr', { key: user.id },
+
+            // Email
+            h('td', null, user.email),
+
+            // ID rút gọn
+            h('td', null, user.id.substring(0, 8) + '...'),
+
+            // Role select
+            h('td', null,
+              h('select', {
+                value: user.role,
+                onChange: e => handleChangeRole(user, e.target.value)
+              },
+                ['user', 'admin', 'moderator'].map(role =>
+                  h('option', { value: role },
+                    role.charAt(0).toUpperCase() + role.slice(1)
+                  )
+                )
+              )
+            ),
+
+            // Delete
+            h('td', null,
+              h('button', {
+                onClick: () => handleDeleteUser(user)
+              }, 'Xóa')
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ====================
 // Cập nhật Navbar để hiển thị link Admin nếu là admin
@@ -1341,7 +1498,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     currentUserRole = 'user';
   }
   // Re-render navbar khi role change
-  window.App.Router.renderNavbar();
+  //window.App.Router.renderNavbar();
 });
 
 // ====================
