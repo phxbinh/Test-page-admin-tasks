@@ -1326,7 +1326,7 @@ function AdminUsers() {
 }
 */
 
-
+/*
 function AdminUsers() {
   const { h } = window.App.VDOM;
   const { useState, useEffect } = window.App.Hooks;
@@ -1468,9 +1468,162 @@ function AdminUsers() {
     )
   );
 }
+*/
 
+function AdminUsers() {
+  const { h } = window.App.VDOM;
+  const { useState, useEffect } = window.App.Hooks;
 
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  // ==========================================
+  // Load users
+  // ==========================================
+  async function loadUsers() {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/users');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Fetch users failed');
+      }
+
+      if (!Array.isArray(data)) {
+        throw new Error('Dữ liệu users không hợp lệ');
+      }
+
+      setUsers(data);
+      setError("");
+    } catch (err) {
+      setError('Lỗi tải danh sách: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // ==========================================
+  // Change role (update state, không reload)
+  // ==========================================
+  async function handleChangeRole(user, newRole) {
+    if (newRole === user.role) return;
+    if (!confirm(`Đổi role của ${user.email} thành ${newRole}?`)) return;
+
+    try {
+      const res = await fetch('/api/change-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, newRole })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Đổi role thất bại');
+      }
+
+      // update local state
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === user.id ? { ...u, role: newRole } : u
+        )
+      );
+
+      alert('Đổi role thành công');
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  }
+
+  // ==========================================
+  // Delete user (update state, không reload)
+  // ==========================================
+  async function handleDeleteUser(user) {
+    if (!confirm(`Xóa người dùng ${user.email}?`)) return;
+
+    try {
+      const res = await fetch('/api/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Xóa thất bại');
+      }
+
+      setUsers(prev => prev.filter(u => u.id !== user.id));
+      alert('Xóa thành công');
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  }
+
+  // ==========================================
+  // Render
+  // ==========================================
+  if (loading) {
+    return h('div', { className: 'loading' }, 'Đang tải danh sách...');
+  }
+
+  if (error) {
+    return h('div', { className: 'error' }, error);
+  }
+
+  return h('div', { className: 'admin-page' },
+
+    h('h1', null, 'Admin – Quản lý người dùng'),
+
+    h('table', { border: 1, cellPadding: 8, width: '100%' },
+
+      h('thead', null,
+        h('tr', null,
+          h('th', null, 'Email'),
+          h('th', null, 'User ID'),
+          h('th', null, 'Role'),
+          h('th', null, 'Thao tác')
+        )
+      ),
+
+      h('tbody', null,
+        users.map(user =>
+          h('tr', { key: user.id },
+
+            h('td', null, user.email),
+
+            h('td', null, user.id.slice(0, 8) + '...'),
+
+            h('td', null,
+              h('select', {
+                value: user.role,
+                onChange: e =>
+                  handleChangeRole(user, e.target.value)
+              },
+                ['user', 'admin', 'moderator'].map(role =>
+                  h('option', { value: role }, role)
+                )
+              )
+            ),
+
+            h('td', null,
+              h('button', {
+                onClick: () => handleDeleteUser(user)
+              }, 'Xóa')
+            )
+          )
+        )
+      )
+    )
+  );
+}
 
 
 
